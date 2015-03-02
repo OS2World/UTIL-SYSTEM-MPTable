@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html>
+<head>
+<title>Introduction</title>
+<meta name="description" content="Introduction">
+<meta name="keywords" content="article">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+
+<meta name="Generator" content="LaTeX2HTML v2002-2-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<link rel="STYLESHEET" href="article.css">
+
+<link rel="next" href="node2.html">
+<link rel="previous" href="article.html">
+<link rel="up" href="article.html">
+<link rel="next" href="node2.html">
+</head>
+
+<body >
+<!--Navigation Panel-->
+<a name="tex2html49"
+  href="node2.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html47"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html41"
+  href="article.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html50"
+  href="node2.html">Legacy PCI INTx Interrupts</a>
+<b> Up:</b> <a name="tex2html48"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html42"
+  href="article.html">PCI Interrupts for x86</a>
+<br>
+<br>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION00010000000000000000">
+Introduction</a>
+</h1>
+
+<p>
+Interrupts are an important part of device support in modern machines.
+They allow system software to use event-driven algorithms instead of
+polling.  This in turn can allow for much more efficient use of system
+resources such as CPU time, especially in systems with multiple
+devices operating concurrently.
+
+<p>
+One of the tasks an operating system must perform when handling device
+interrupts is to determine which device needs attention when an
+interrupt is asserted.  This mapping can be done several different
+ways.  Some systems may include this mapping information in a static
+table hard-coded into the operating system or firmware.  Other systems
+may use dynamic mappings with programmable hardware, and still other
+systems may use a combination.
+
+<p>
+PCI allows devices to assert interrupts in two very different styles.
+The first style consists of dedicated sideband signals and is known as
+Legacy INTx interrupts.  The second style consists of special memory
+writes that are sent over the data bus just like DMA operations and is
+known as Message Signaled Interrupts (MSI).  MSI interrupts are only
+available on newer devices as it is a recent addition to the PCI
+standards.
+
+<p>
+First, however, a brief segue into nomenclature.  In PCI, the term
+``device'' actually refers to a piece of hardware that contains from
+one to eight ``functions''.  A typical x86 chipset may include several
+USB controllers as functions of a single PCI device for example.  A
+PCI expansion slot is a PCI device, and a single expansion card may
+contain multiple functions.  However, from the operating system's
+perspective, each function on a PCI device is a logical operating
+system device.  For example, on both Darwin and FreeBSD, each function
+of a multi-function PCI device receives its own device object and can
+be served by different drivers.  To attempt to avoid confusion, the
+rest of this paper will use the term ``slot'' for a PCI device and
+will only use ``device'' to refer to a logical operating system
+device.
+
+<p>
+<hr>
+<!--Navigation Panel-->
+<a name="tex2html49"
+  href="node2.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html47"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html41"
+  href="article.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html50"
+  href="node2.html">Legacy PCI INTx Interrupts</a>
+<b> Up:</b> <a name="tex2html48"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html42"
+  href="article.html">PCI Interrupts for x86</a>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html>
+<head>
+<title>FreeBSD's INTx Implementation</title>
+<meta name="description" content="FreeBSD's intx Implementation">
+<meta name="keywords" content="article">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+
+<meta name="Generator" content="LaTeX2HTML v2002-2-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<link rel="STYLESHEET" href="article.css">
+
+<link rel="next" href="node7.html">
+<link rel="previous" href="node5.html">
+<link rel="up" href="article.html">
+<link rel="next" href="node7.html">
+</head>
+
+<body >
+<!--Navigation Panel-->
+<a name="tex2html112"
+  href="node7.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html110"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html104"
+  href="node5.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html113"
+  href="node7.html">PCI Message Signaled Interrupts</a>
+<b> Up:</b> <a name="tex2html111"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html105"
+  href="node5.html">PCI Interrupt Routing (Navigating</a>
+<br>
+<br>
+<!--End of Navigation Panel-->
+<!--Table of Child-Links-->
+<a name="CHILD_LINKS"><strong>Subsections</strong></a>
+
+<ul>
+<li><a name="tex2html114"
+  href="node6.html#SECTION00061000000000000000">IRQs are Yummy Cookies</a>
+<li><a name="tex2html115"
+  href="node6.html#SECTION00062000000000000000">IDT Vectors on x86</a>
+</ul>
+<!--End of Table of Child-Links-->
+<hr>
+
+<h1><a name="SECTION00060000000000000000">
+FreeBSD's INTx Implementation</a>
+</h1>
+
+<p>
+FreeBSD's PCI interrupt routing code attempts to provide a machine
+independent framework that machine dependent code can hook into where
+necessary.  First, FreeBSD uses cookie values defined by machine
+dependent code for <tt>SYS_RES_IRQ</tt> resources.  This provides a
+way to handle interrupts in machine independent code and interfaces.
+Second, when the PCI bus needs to route an interrupt it passes the
+request up the device tree until it reaches a level where the request
+can be handled.
+
+<p>
+All interrupt resources in FreeBSD drivers are managed as
+<tt>SYS_RES_IRQ</tt> resources.  When a driver wants to use an
+interrupt, it allocates a <tt>SYS_RES_IRQ</tt> resource in much the
+same way it allocates memory or I/O space.  The driver can then attach
+an interrupt handler to that resource.  When a PCI device attempts to
+allocate a INTx interrupt, the PCI bus first routes it to an IRQ value
+that is used to create the <tt>SYS_RES_IRQ</tt> resource.  It does
+this by asking its parent device, which is either a Host-PCI or
+PCI-PCI bridge, to look up the IRQ for the given PCI interrupt.  The
+different interrupt routing algorithms are then implemented in
+different drivers for Host-PCI and PCI-PCI bridge drivers.
+
+<p>
+The simplest PCI bridge driver is the PCI-PCI bridge driver.  This
+driver's interrupt routing routine implements the swizzle defined in
+Section&nbsp;<a href="node5.html#swizzle">5.1</a> by calculating the corresponding slot and pin on
+the upstream side of the bridge and passing the request up to the PCI
+bridge driver for the upstream PCI bus.  Thus, routing requests for
+interrupts on busses that are not part of the main chassis will bubble
+up through the device tree until they hit a bridge for a PCI bus that
+is part of the main chassis.
+
+<p>
+Interrupt routing for PCI busses that are part of the main chassis
+is handled by machine dependent PCI bridge drivers.  For example, if
+ACPI is enabled, then ACPI will probe and attach to all the PCI
+bridges in the ACPI namespace.  When an interrupt routing request
+reaches a PCI bridge with an ACPI driver, it will use the
+<tt>_PRT</tt> for the corresponding PCI bus to determine the GSI for
+the PCI interrupt.  It then maps the GSI to a <tt>SYS_RES_IRQ</tt>
+cookie value which it returns.  Thus, the machine dependent code is
+responsible for mapping platform-specific interrupts to
+<tt>SYS_RES_IRQ</tt> cookies in the PCI bridge drivers.  Then in the
+top-level root, or nexus, devices in the device tree, the machine
+dependent code is responsible for mapping the <tt>SYS_RES_IRQ</tt>
+resources back to the platform-specific interrupts.
+
+<p>
+FreeBSD does allow the user to override the IRQ for any given PCI
+interrupt via a tunable.  The format for this tunable is
+<tt>hw.pci<i>bus</i>.<i>slot</i>.INT<i>pin</i>.irq</tt> where
+<i>bus</i> is the PCI bus number, <i>slot</i> is the PCI slot number,
+and <i>pin</i> is the intpin (<tt>A</tt>, <tt>B</tt>, <tt>C</tt>, or
+<tt>D</tt>).  The value of the tunable is the IRQ to use for the
+specified PCI interrupt.  This tunable should only be used as a last
+resort when there aren't more specific tunables (such as the PCI link
+tunables) available.  One instance in which this tunable is useful is
+correcting hard-wired routing to I/O APIC intpins due to a broken MP
+Table or <tt>_PRT</tt> entry.  For example, to route the PCI
+interrupt for bus 0, slot 16, <tt>INTA#</tt> to IRQ 24, set the
+loader tunable <tt>hw.pci0.16.INTA.irq=24</tt>.
+
+<p>
+
+<h2><a name="SECTION00061000000000000000">
+IRQs are Yummy Cookies</a>
+</h2>
+
+<p>
+For the x86 platforms, FreeBSD models the mapping of IRQ values to
+platform interrupts on the Global System Interrupts approach from
+ACPI.  In fact, when using ACPI FreeBSD uses the GSI values directly
+as IRQs.  FreeBSD also always maps IRQ values 0 through 15 to the
+sixteen ISA IRQs.  The only remaining case is when using the MP Table
+to enumerate APICs and route interrupts.  For this case, the MP Table
+code simulates the GSI approach by assigning suitable base IRQ values
+to each I/O APIC similar to th base GSI values used by ACPI.  The MP
+Table code calculates the base IRQs by adding the number of input pins
+on each I/O APIC to the base IRQ of the current I/O APIC to determine
+the base IRQ of the next I/O APIC.  Thus, if you have a system with
+three I/O APICs where the first two I/O APICs have 24 pins and the
+third I/O APIC has 16 pins, the first I/O APIC would be assigned IRQs
+0-23, the second I/O APIC would be assigned IRQs 24-47, and the last
+I/O APIC would be assigned IRQs 48-63.
+
+<p>
+The x86 platforms use a global array indexed by the IRQ value to map
+the IRQs to platform interrupts.  Each entry in the array is a pointer
+to an interrupt source object.  Interrupt source objects consist of a
+<tt>struct intsrc</tt> which contains a pointer to a group of function
+pointers in a <tt>struct pic</tt>.  One can think of <tt>struct
+intsrc</tt> and <tt>struct pic</tt> as abstract base classes.  Each
+interrupt controller driver provides its own extended versions of
+<tt>struct pic</tt> and <tt>struct intsrc</tt>.  The extended
+versions contain the base structure as the first member and add
+driver-specific data after that.  For example, the I/O APIC code
+defines a <tt>struct ioapic</tt> which extends <tt>struct pic</tt>.
+Each instance of <tt>struct ioapic</tt> contains functions for
+managing I/O APIC input pins in its method table.  It also defines a
+<tt>struct ioapic_intsrc</tt> which extends <tt>struct intsrc</tt> to
+add I/O APIC-specific data such as which I/O APIC input pin an
+interrupt source represents.  The interrupt controller drivers
+determine the IRQ values for each interrupt source object.  Thus, they
+must ensure the IRQ properly matches up with the IRQ value used for
+any PCI interrupts routed to that interrupt source.
+
+<p>
+
+<h2><a name="SECTION00062000000000000000">
+IDT Vectors on x86</a>
+</h2>
+
+<p>
+Once the operating system has mapped a PCI interrupt to an interrupt
+source, the only remaining step for x86 platforms is mapping the
+interrupt source to an IDT vector.  IDT vectors range from 0 to 255,
+and IDT vectors 0-31 are reserved for CPU faults and exceptions and
+NMIs.  In addition, FreeBSD uses vectors 240-255 for IPIs, vector 239
+for the local APIC timer interrupt, and vector 128 for system calls.
+That leaves vectors 32-127 and 129-238 for device interrupts.
+
+<p>
+The 8259As each require 8 contiguous IDT vectors.  They each can also
+interrupt the CPU even when all input pins are masked if a spurious
+interrupt occurs.  Thus, vectors 32-47 are reserved for the 8259As,
+even when APICs are used instead of the 8259As.
+
+<p>
+The rest of the device interrupts are allocated on an as-needed basis
+to active interrupt sources.  For example, I/O APIC input pins
+allocate an IDT vector the first time an interrupt handler is
+registered.  Most I/O APIC input pins are never used, so this strategy
+avoids reserving IDT vectors for interrupt sources that will never
+trigger.
+
+<p>
+<hr>
+<!--Navigation Panel-->
+<a name="tex2html112"
+  href="node7.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html110"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html104"
+  href="node5.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html113"
+  href="node7.html">PCI Message Signaled Interrupts</a>
+<b> Up:</b> <a name="tex2html111"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html105"
+  href="node5.html">PCI Interrupt Routing (Navigating</a>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

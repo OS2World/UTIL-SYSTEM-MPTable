@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html>
+<head>
+<title>FreeBSD's MSI Implementation</title>
+<meta name="description" content="FreeBSD's msi Implementation">
+<meta name="keywords" content="article">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+
+<meta name="Generator" content="LaTeX2HTML v2002-2-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<link rel="STYLESHEET" href="article.css">
+
+<link rel="next" href="node9.html">
+<link rel="previous" href="node7.html">
+<link rel="up" href="article.html">
+<link rel="next" href="node9.html">
+</head>
+
+<body >
+<!--Navigation Panel-->
+<a name="tex2html134"
+  href="node9.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html132"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html126"
+  href="node7.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html135"
+  href="node9.html">Conclusion</a>
+<b> Up:</b> <a name="tex2html133"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html127"
+  href="node7.html">PCI Message Signaled Interrupts</a>
+<br>
+<br>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION00080000000000000000">
+FreeBSD's MSI Implementation</a>
+</h1>
+
+<p>
+FreeBSD implements MSI messages as <tt>SYS_RES_IRQ</tt> interrupts
+similar to the legacy INTx interrupts.  The driver visible differences
+include different resource IDs (legacy INTx interrupt is rid 0, MSI
+messages start at rid 1) for <tt>SYS_RES_IRQ</tt> resources and new
+APIs for allocating and releasing MSI messages.  Behind the scenes,
+the PCI bus driver is responsible for programming the various MSI
+registers.  It also allocates IRQs to map MSI messages onto via
+requests to the parent bridge.  These requests pass up through the
+various PCI bridge drivers (very similar to how PCI interrupt routing
+passes up through PCI bridges) until it finds a device that can
+allocate IRQs for MSI messages.  Similar requests are forwarded up the
+device tree to release MSI IRQs no longer in use and to compute the
+address and data register values for an MSI IRQ.
+
+<p>
+For the x86 platforms, the PCI bridge requests bubble up through the
+device tree until they arrive at the <tt>nexus0</tt> device.  This
+device's driver proxies the requests over to the x86 MSI code. The x86
+MSI code uses interrupt source objects to manage IRQs for MSI
+messages.  It provides a single <tt>struct pic</tt> shared by all MSI
+interrupt sources.  The MSI interrupt sources are created on the fly
+when a request is made by a driver to allocate MSI messages.  Each MSI
+interrupt source is assigned an IRQ value in the range 256 - 383.
+These IRQ values are used to avoid conflicting with the IRQs used for
+legacy INTx interrupts which use a range of 0 - 255.  Once an MSI
+interrupt source is created, it is never destroyed, but it may be
+reused by a different device if it is released by a driver and another
+driver makes a subsequent allocation request.  When an MSI interrupt
+source is allocated, it is assigned an IDT vector.  If the MSI
+interrupt source is released, it frees the IDT vector back to the
+system.  If a driver requests multiple MSI messages, care must be
+taken to ensure that the group of MSI messages use an aligned,
+contiguous range of IDT vectors.  An extension to MSI known as MSI-X
+removes this limitation since it provides for separate address and
+data registers for each message.
+
+<p>
+<hr>
+<!--Navigation Panel-->
+<a name="tex2html134"
+  href="node9.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html132"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html126"
+  href="node7.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html135"
+  href="node9.html">Conclusion</a>
+<b> Up:</b> <a name="tex2html133"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html127"
+  href="node7.html">PCI Message Signaled Interrupts</a>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

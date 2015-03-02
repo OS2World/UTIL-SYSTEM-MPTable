@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html>
+<head>
+<title>PCI Message Signaled Interrupts</title>
+<meta name="description" content="PCI message Signaled Interrupts">
+<meta name="keywords" content="article">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+
+<meta name="Generator" content="LaTeX2HTML v2002-2-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<link rel="STYLESHEET" href="article.css">
+
+<link rel="next" href="node8.html">
+<link rel="previous" href="node6.html">
+<link rel="up" href="article.html">
+<link rel="next" href="node8.html">
+</head>
+
+<body >
+<!--Navigation Panel-->
+<a name="tex2html124"
+  href="node8.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html122"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html116"
+  href="node6.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html125"
+  href="node8.html">FreeBSD's MSI Implementation</a>
+<b> Up:</b> <a name="tex2html123"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html117"
+  href="node6.html">FreeBSD's INTx Implementation</a>
+<br>
+<br>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION00070000000000000000">
+PCI Message Signaled Interrupts</a>
+</h1>
+
+<p>
+Legacy PCI INTx interrupts work, but they have several limitations.
+First, each PCI function is only allowed a single interrupt.  Second,
+PCI INTx interrupts use a separate signal from the address and data
+lines used for PCI data transactions.
+
+<p>
+The single interrupt restriction can be a bottleneck for
+high-performance devices.  For example, on some Ethernet adapters, the
+transmit and receive units run in parallel, but a single interrupt
+forces the driver to process events from the two units serially.
+Another case where a device can benefit from multiple handlers is a
+device that generates interrupts for specific performance-critical
+events very often while also generating interrupts for other events
+less often.  An Ethernet device can be an example of this as well.  A
+busy Ethernet device will generate several receive and transmit
+completion interrupts while handling traffic, and it can also generate
+other interrupts for events like link status changes.  If the device
+were able to split out the receive and transmit completion events into
+dedicated interrupts, those interrupt handlers could be smaller and
+faster allowing for less overhead for those events.
+
+<p>
+Using a separate signal from the normal address and data lines for PCI
+INTx interrupts raises several issues.  First, on many x86 systems
+this requires separate physical traces on the motherboard to connect
+the signals to interrupt controller input pins.  Second, the platform
+and operating system have to work together to route the interrupts.
+The largest issue, however, is that by using separate signals, the
+interrupt may be raised on the CPU before all of the effects of the
+event that triggered the interrupt are visible to the CPU.  As a
+result, all PCI device driver interrupt handlers must begin with a
+read from a register on the PCI device.  This read will not be
+completed until any pending transactions in between the CPU and the
+PCI device complete, and thus guarantees that all the effects of the
+event that triggered the interrupt will be visible to the CPU.  This
+adds extra latency and work to the interrupt handler even if the
+handler doesn't need to read a PCI register.  For example, if an
+Ethernet device had dedicated interrupt handlers for receive and
+transmit completion events, those handlers only need to walk the
+descriptor rings in RAM in the common case.  Forcing them to start
+with a dummy read would just add overhead and latency.
+
+<p>
+Starting with PCI 2.2, a new interrupt mechanism known as Message
+Signaled Interrupts (MSI) was introduced to address these concerns.
+With MSI, each PCI function can have one or more interrupt messages.
+Each message has associated address and data registers whose values
+are assigned by the operating system.  When a PCI function asserts an
+interrupt using MSI, it performs a PCI write operation that writes the
+value of the data register to the address specified in the address
+register.  The platform must ensure that something is listening for
+writes to the addresses used by MSI messages and translate them into
+interrupt requests to one or more CPUs.
+
+<p>
+The format of the message address and data fields is
+platform-specific.  For x86 platforms, the message data contains the
+IDT vector to trigger when the interrupt occurs.  Thus, MSI interrupts
+are able to bypass the entire interrupt routing maze, and the
+operating system can directly link MSI interrupts to IDT vectors.
+
+<p>
+<hr>
+<!--Navigation Panel-->
+<a name="tex2html124"
+  href="node8.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html122"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html116"
+  href="node6.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html125"
+  href="node8.html">FreeBSD's MSI Implementation</a>
+<b> Up:</b> <a name="tex2html123"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html117"
+  href="node6.html">FreeBSD's INTx Implementation</a>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

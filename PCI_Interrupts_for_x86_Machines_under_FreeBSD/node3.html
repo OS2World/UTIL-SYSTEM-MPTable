@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html>
+<head>
+<title>Interrupts on x86 CPUs</title>
+<meta name="description" content="Interrupts on x86 CPUs">
+<meta name="keywords" content="article">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+
+<meta name="Generator" content="LaTeX2HTML v2002-2-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<link rel="STYLESHEET" href="article.css">
+
+<link rel="next" href="node4.html">
+<link rel="previous" href="node2.html">
+<link rel="up" href="article.html">
+<link rel="next" href="node4.html">
+</head>
+
+<body >
+<!--Navigation Panel-->
+<a name="tex2html69"
+  href="node4.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html67"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html61"
+  href="node2.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html70"
+  href="node4.html">Interrupt Controllers (Stuff in</a>
+<b> Up:</b> <a name="tex2html68"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html62"
+  href="node2.html">Legacy PCI INTx Interrupts</a>
+<br>
+<br>
+<!--End of Navigation Panel-->
+
+<h1><a name="SECTION00030000000000000000">
+Interrupts on x86 CPUs</a>
+</h1>
+
+<p>
+Exceptions, Non-Maskable Interrupts (NMIs), Inter-Processor Interrupts
+(IPIs), and device interrupts all use the same interrupt mechanism on
+x86 CPUs.  The operating system provides an Interrupt Descriptor Table
+(IDT) to the CPU that contains an array of handlers.  When an
+interrupt is asserted, the CPU determines the associated IDT index, or
+vector.  It can do this by asking an external interrupt controller for
+the IDT vector.  If the interrupt was triggered by a message, the
+message will contain the IDT vector.  Exceptions and NMIs are assigned
+static IDT vectors.  Once the CPU has the IDT vector, it uses that
+vector as an index into the IDT.  It then triggers the handler for
+that IDT slot.  Thus, for an operating system to handle a device
+interrupt on an x86 CPU, it must know which device driver handlers are
+associated with a given IDT vector.
+
+<p>
+Thus, at one end we have a PCI interrupt line being signaled by a PCI
+function that needs attention.  At the other end we have a CPU
+receiving an IDT vector.  In the middle is one of those ``and then a
+miracle occurs'' mysteries.  In this case the mystery hardware in the
+middle is known collectively as interrupt controllers.
+
+<p>
+<hr>
+<!--Navigation Panel-->
+<a name="tex2html69"
+  href="node4.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<a name="tex2html67"
+  href="article.html">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"></a> 
+<a name="tex2html61"
+  href="node2.html">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"></a>   
+<br>
+<b> Next:</b> <a name="tex2html70"
+  href="node4.html">Interrupt Controllers (Stuff in</a>
+<b> Up:</b> <a name="tex2html68"
+  href="article.html">PCI Interrupts for x86</a>
+<b> Previous:</b> <a name="tex2html62"
+  href="node2.html">Legacy PCI INTx Interrupts</a>
+<!--End of Navigation Panel-->
+
+</body>
+</html>

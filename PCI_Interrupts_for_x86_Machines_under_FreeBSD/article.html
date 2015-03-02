@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.70)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html>
+<head>
+<title>PCI Interrupts for x86 Machines under FreeBSD</title>
+<meta name="description" content="PCI interrupts for x86 Machines under FreeBSD">
+<meta name="keywords" content="article">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+
+<meta name="Generator" content="LaTeX2HTML v2002-2-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<link rel="STYLESHEET" href="article.css">
+
+<link rel="next" href="node1.html">
+</head>
+
+<body >
+<!--Navigation Panel-->
+<a name="tex2html11"
+  href="node1.html">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"></a> 
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up_g.png"> 
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev_g.png">   
+<br>
+<b> Next:</b> <a name="tex2html12"
+  href="node1.html">Introduction</a>
+<br>
+<br>
+<!--End of Navigation Panel-->
+
+<p>
+
+<p>
+
+<p>
+ 
+<p>
+<h1 align="CENTER"><font size="+2"><b>PCI Interrupts for x86 Machines under FreeBSD</b></font></h1>
+<div>
+
+<p align="CENTER"><strong>John H. Baldwin</strong></p>
+<p align="CENTER"><i><em>Yahoo!, Inc.</em></i></p>
+<p align="LEFT"><small><em>Atlanta, GA 30327</em></small></p>
+</div>
+
+<p>
+
+<p>
+
+<h2><a name="SECTION00001000000000000000">
+Abstract</a>
+</h2>
+
+<p>
+An important element in computers with multiple autonomous devices is
+the ability of a device to notify the CPU that it needs attention via
+an interrupt.  The OS visible mechanics of interrupts for PCI devices
+is quite convoluted, especially on x86 PC systems.  This paper will
+cover the various ways that PCI INTx interrupts have been implemented
+on x86 as well as the methods used by the system BIOS to communicate
+the implementation to operating systems.  It will also cover the newer
+Message Signaled Interrupts that address some of the limitations of
+INTx interrupts.  Finally, the paper will provide an overview of
+FreeBSD's implementation of both INTx and MSI interrupts on the x86
+platform.
+
+<p>
+<br><hr>
+<!--Table of Child-Links-->
+<a name="CHILD_LINKS"></a>
+
+<ul>
+<li><ul>
+<li><a name="tex2html13"
+  href="article.html#SECTION00001000000000000000">Abstract</a>
+</ul>
+<br>
+<li><a name="tex2html14"
+  href="node1.html">Introduction</a>
+<li><a name="tex2html15"
+  href="node2.html">Legacy PCI INTx Interrupts</a>
+<li><a name="tex2html16"
+  href="node3.html">Interrupts on x86 CPUs</a>
+<li><a name="tex2html17"
+  href="node4.html">Interrupt Controllers (Stuff in the Middle)</a>
+<ul>
+<li><a name="tex2html18"
+  href="node4.html#SECTION00041000000000000000">8259A Master and Slave PICs (PC-AT)</a>
+<li><a name="tex2html19"
+  href="node4.html#SECTION00042000000000000000">Programmable Interrupt Routers (PCI Link Devices)</a>
+<li><a name="tex2html20"
+  href="node4.html#SECTION00043000000000000000">I/O APICs</a>
+</ul>
+<br>
+<li><a name="tex2html21"
+  href="node5.html">PCI Interrupt Routing (Navigating the Maze)</a>
+<ul>
+<li><a name="tex2html22"
+  href="node5.html#SECTION00051000000000000000">PCI-PCI Bridge Swizzle</a>
+<li><a name="tex2html23"
+  href="node5.html#SECTION00052000000000000000">Routing via $PIR</a>
+<ul>
+<li><a name="tex2html24"
+  href="node5.html#SECTION00052100000000000000">The $PIR Table</a>
+<li><a name="tex2html25"
+  href="node5.html#SECTION00052200000000000000">FreeBSD's $PIR Implementation</a>
+</ul>
+<li><a name="tex2html26"
+  href="node5.html#SECTION00053000000000000000">Routing via the MP Table</a>
+<li><a name="tex2html27"
+  href="node5.html#SECTION00054000000000000000">Routing via ACPI</a>
+<ul>
+<li><a name="tex2html28"
+  href="node5.html#SECTION00054100000000000000">Global System Interrupts</a>
+<li><a name="tex2html29"
+  href="node5.html#SECTION00054200000000000000">The <tt>_PIC</tt> Method</a>
+<li><a name="tex2html30"
+  href="node5.html#SECTION00054300000000000000">PCI Interrupt Link Devices</a>
+<li><a name="tex2html31"
+  href="node5.html#SECTION00054400000000000000"><tt>_PRT</tt> Methods</a>
+</ul>
+</ul>
+<br>
+<li><a name="tex2html32"
+  href="node6.html">FreeBSD's INTx Implementation</a>
+<ul>
+<li><a name="tex2html33"
+  href="node6.html#SECTION00061000000000000000">IRQs are Yummy Cookies</a>
+<li><a name="tex2html34"
+  href="node6.html#SECTION00062000000000000000">IDT Vectors on x86</a>
+</ul>
+<br>
+<li><a name="tex2html35"
+  href="node7.html">PCI Message Signaled Interrupts</a>
+<li><a name="tex2html36"
+  href="node8.html">FreeBSD's MSI Implementation</a>
+<li><a name="tex2html37"
+  href="node9.html">Conclusion</a>
+<li><a name="tex2html38"
+  href="node10.html">Acknowledgments</a>
+<li><a name="tex2html39"
+  href="node11.html">Availability</a>
+<li><a name="tex2html40"
+  href="node12.html">Bibliography</a>
+</ul>
+<!--End of Table of Child-Links-->
+<br><hr>
+
+</body>
+</html>
